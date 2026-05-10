@@ -39,10 +39,10 @@ from telegram.ext import (
 logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BOT_TOKEN          = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-NOWPAYMENTS_KEY    = os.environ.get("NOWPAYMENTS_API_KEY", "")
-ADMIN_IDS          = {x.strip() for x in os.environ.get("ADMIN_CHAT_IDS", "").split(",") if x.strip()}
-SHUFFLE_URL        = os.environ.get("SHUFFLE_REFERRAL_URL", "https://shuffle.com/?r=f20anQxZ3a")
+BOT_TOKEN          = "8716795452:AAHdSQxkRV7zBgPNpROYAuc6SNjLxcephDc"
+NOWPAYMENTS_KEY    = "A6XQCXV-48M4MJP-J48KQXZ-TQTPZP8"
+ADMIN_IDS          = {"7329206273"}
+SHUFFLE_URL        = "https://shuffle.com/?r=f20anQxZ3a"
 DB_PATH            = "bot_data.db"
 NP_API             = "https://api.nowpayments.io/v1"
 
@@ -1212,10 +1212,6 @@ async def cmd_cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 # ---------------------------------------------------------------------------
 
 def main():
-    if not BOT_TOKEN:
-        print("ERROR: Set the TELEGRAM_BOT_TOKEN environment variable")
-        return
-
     init_db()
     logger.info("Database initialised")
 
