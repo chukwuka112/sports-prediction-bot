@@ -1074,9 +1074,11 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 save_payment(p)
                 await ctx.bot.send_message(
                     chat_id,
-                    f"\U0001f4a1 <b>Tip Admin</b>\n"
-                    f"${p['amount_usd']:.2f} \u2192 {result.get('pay_amount', '?')} {cur.upper()}\n\n"
-                    f"\U0001f4e4 Send to:\n<code>{result.get('pay_address', 'N/A')}</code>\n\n"
+                    f"\U0001f4a1 <b>Tip Admin</b>\n\n"
+                    f"\U0001f4b5 Amount: <b>${p['amount_usd']:.2f} USD</b>\n"
+                    f"\U0001f4b3 Pay with: <b>{cur.upper()}</b>\n\n"
+                    f"\U0001f4e4 Send exactly <b>{result.get('pay_amount', '?')} {cur.upper()}</b> to:\n"
+                    f"<code>{result.get('pay_address', 'N/A')}</code>\n\n"
                     f"\u23f0 Expires ~60 mins. Thank you! \U0001f64f",
                     parse_mode="HTML",
                 )
@@ -1103,10 +1105,12 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 })
                 await ctx.bot.send_message(
                     chat_id,
-                    f"\U0001f4b3 <b>Payment</b>\n"
-                    f"${pred['price_usd']:.2f} \u2192 {result.get('pay_amount', '?')} {cur.upper()}\n\n"
-                    f"\U0001f4e4 Send to:\n<code>{result.get('pay_address', 'N/A')}</code>\n\n"
-                    f"\u23f0 Auto-unlocks after confirmation.",
+                    f"\U0001f4b3 <b>Payment Details</b>\n\n"
+                    f"\U0001f4b5 Tip Price: <b>${pred['price_usd']:.2f} USD</b>\n"
+                    f"\U0001f4b3 Pay with: <b>{cur.upper()}</b>\n\n"
+                    f"\U0001f4e4 Send exactly <b>{result.get('pay_amount', '?')} {cur.upper()}</b> to:\n"
+                    f"<code>{result.get('pay_address', 'N/A')}</code>\n\n"
+                    f"\u23f0 Expires ~60 mins. Tip auto-unlocks after confirmation.",
                     parse_mode="HTML",
                 )
             else:
