@@ -1,0 +1,5 @@
+codewords-client==0.4.6
+fastapi==0.116.1
+httpx==0.28.1
+Pillow==10.4.0
+python-multipart==0.0.12
