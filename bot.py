@@ -101,6 +101,10 @@ def init_db():
                 user_id TEXT, pred_id TEXT, payment_id TEXT, paid_at REAL,
                 PRIMARY KEY (user_id, pred_id)
             );
+            CREATE TABLE IF NOT EXISTS pred_messages (
+                pred_id TEXT, user_id TEXT, message_id INTEGER,
+                PRIMARY KEY (pred_id, user_id)
+            );
             CREATE TABLE IF NOT EXISTS ref_codes (
                 code TEXT PRIMARY KEY, user_id TEXT
             );
@@ -112,7 +116,28 @@ def init_db():
         """)
 
 
-def cfg(key, default=""):
+def save_pred_msg(pred_id: str, user_id: str, message_id: int):
+    with get_db() as conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO pred_messages VALUES(?,?,?)",
+            (pred_id, str(user_id), message_id),
+        )
+
+
+def get_pred_msgs(pred_id: str) -> list:
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT user_id, message_id FROM pred_messages WHERE pred_id=?", (pred_id,)
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def delete_pred_msgs_db(pred_id: str):
+    with get_db() as conn:
+        conn.execute("DELETE FROM pred_messages WHERE pred_id=?", (pred_id,))
+
+
+
     with get_db() as conn:
         r = conn.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
     return r["value"] if r else default
@@ -404,8 +429,9 @@ async def bcast_pred(bot, pred: dict):
     for u in get_users("approved"):
         try:
             uid = int(u["user_id"])
+            msg = None
             if pred["type"] == "free":
-                await bot.send_photo(
+                msg = await bot.send_photo(
                     uid, pred["photo_file_id"],
                     caption=fmt_pred(pred, True), parse_mode="HTML",
                 )
@@ -417,9 +443,11 @@ async def bcast_pred(bot, pred: dict):
                 rm = ik_unlock(pred["id"], pred["price_usd"])
                 fid = pred.get("pixelated_file_id")
                 if fid:
-                    await bot.send_photo(uid, fid, caption=cap, reply_markup=rm, parse_mode="HTML")
+                    msg = await bot.send_photo(uid, fid, caption=cap, reply_markup=rm, parse_mode="HTML")
                 else:
-                    await bot.send_message(uid, cap, reply_markup=rm, parse_mode="HTML")
+                    msg = await bot.send_message(uid, cap, reply_markup=rm, parse_mode="HTML")
+            if msg:
+                save_pred_msg(pred["id"], str(uid), msg.message_id)
             await asyncio.sleep(0.05)
         except Exception as exc:
             logger.warning(f"bcast_pred {u['user_id']}: {exc}")
@@ -433,6 +461,19 @@ async def bcast_result(bot, pred: dict, result: str):
         f"Result: <b>{result.upper()}</b>\n\n"
         f"<i>{pred.get('text', '')[:80]}</i>"
     )
+    # First delete the original prediction messages from all users
+    stored_msgs = get_pred_msgs(pred["id"])
+    for entry in stored_msgs:
+        try:
+            await bot.delete_message(
+                chat_id=int(entry["user_id"]),
+                message_id=entry["message_id"]
+            )
+        except Exception:
+            pass  # Message may already be deleted or too old
+        await asyncio.sleep(0.03)
+    delete_pred_msgs_db(pred["id"])
+    # Then send the result notification to all approved users
     for u in get_users("approved"):
         try:
             await bot.send_message(int(u["user_id"]), msg, parse_mode="HTML")
