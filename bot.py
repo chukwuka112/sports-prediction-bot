@@ -782,11 +782,11 @@ async def await_tip_amt(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Cancelled.", reply_markup=kb_user())
         return ConversationHandler.END
     try:
-        amt = float(text.replace("$", ""))
-        if amt < 1:
+        amt = float(text.replace("$", "").strip())
+        if amt <= 0:
             raise ValueError
     except ValueError:
-        await update.message.reply_text("\u274c Enter a valid amount >= $1.00")
+        await update.message.reply_text("\u274c Please enter a valid amount (e.g. <code>5</code> or <code>0.50</code>).", parse_mode="HTML")
         return AWAIT_TIP_AMT
     pid = uuid.uuid4().hex
     save_payment({
